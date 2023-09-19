@@ -1,0 +1,112 @@
+# bbox
+pol <- terra::vect('./data/input/gadm/roi.gpkg', layer = 'roi')
+bb <- terra::ext(pol)
+bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
+
+# Load climatic
+omp <- terra::rast("./data/intermediate/climatic/climatic_monthly_prec.nc")
+omt <- terra::rast("./data/intermediate/climatic/climatic_monthly_tmax.nc")
+
+# Load forecast
+year <- format(Sys.Date(), "%Y")
+months <- sprintf("%02d", 1:12)
+t.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_tmax_", year, ".nc")) # Load seasonal forecast tmax
+p.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_rain_", year, ".nc")) # Load seasonal forecast prec
+f.months <- unique(format(as.Date(terra::time(p.f)), "%m"))
+
+# monthly stack (sum of daily values)
+# make a monthly index first
+names(t.f) <- format(terra::time(t.f), "%m")
+names(p.f) <- format(terra::time(p.f), "%m")
+# aggregate the stack
+t.f.m = terra::tapp(t.f, index = names(t.f), fun = mean)
+p.f.m = terra::tapp(p.f, index = names(p.f), fun = sum)
+
+# Forecast at highest resolution with interpolation
+re <- terra::extend(omp, terra::ext(pol) + 1) # Extend AOI
+p.f.m.r <- terra::resample(p.f.m, re, method = "bilinear") # Interpolate with a first-order bilinear spline technique across an extent larger than our high-resolution climatology dataset
+t.f.m.r <- terra::resample(t.f.m, re, method = "bilinear") # Interpolate with a first-order bilinear spline technique across an extent larger than our high-resolution climatology dataset
+# Extract data
+data.p <- as.data.frame(omp, xy = T, na.rm = FALSE, cells = T)
+# colnames(data.p)[4:9] <- paste0("clim_rain_", sprintf("%02d", as.integer(gsub("climatic_monthly_prec_", "", colnames(data.p)[4:9]))+3))
+colnames(data.p)[4:15] <- paste0("clim_rain_", months)
+colnames(data.p)[1] <- "ID"
+data.t <- terra::extract(omt, data.p[,c(2,3)])
+# colnames(data.t)[2:7] <- paste0("clim_tmax_", sprintf("%02d", as.integer(gsub("climatic_monthly_tmax_", "", colnames(data.t)[2:7]))+3))
+colnames(data.t)[2:13] <- paste0("clim_tmax_", months)
+data <- merge(data.p, data.t, by = "ID")
+d <- terra::extract(p.f.m.r[[1]], data[,c(2,3)])
+colnames(d) <- c("ID", paste0("forecast_rain_", gsub("X","", colnames(d)[2])))
+for (lyr in 2:terra::nlyr(p.f.m.r)) {
+  l <- p.f.m.r[[lyr]]
+  ll <- terra::extract(l, data[,c(2,3)])
+  colnames(ll) <- c("ID", paste0("forecast_rain_", gsub("X","", colnames(ll)[2])))
+  d <- merge(d,ll, by="ID")
+}
+data <- merge(data, d, by = "ID")
+c <- terra::extract(t.f.m.r[[1]], data[,c(2,3)])
+colnames(c) <- c("ID", paste0("forecast_tmax_", gsub("X","", colnames(c)[2])))
+for (lyr in 2:terra::nlyr(t.f.m.r)) {
+  l <- t.f.m.r[[lyr]]
+  ll <- terra::extract(l, data[,c(2,3)])
+  colnames(ll) <- c("ID", paste0("forecast_tmax_", gsub("X","", colnames(ll)[2])))
+  c <- merge(c,ll, by="ID")
+}
+data <- merge(data, c, by = "ID")
+
+# Write outputs
+out <- data
+tsp <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_prec.nc")
+tst <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
+np <- c()
+nt <- c()
+for (month in months) {
+  for (year in 1983:2016) {
+    nt <- c(nt, paste0(year, month, "_tmax"))
+    np <- c(np, paste0(year, month, "_rain"))
+  }
+}
+names(tsp) <- np
+names(tst) <- nt
+out <- data
+for (v in c("rain", "tmax")) {
+  if(v == "rain"){r <- tsp} else {r <- tst}
+  for (f.month in f.months) {
+    rr <- r[[grep(paste0(paste0(rep(1983:2016, each = length(f.month)), f.month, "_", v), collapse="|"), names(r), value=TRUE)]]
+    rr <- rr[[order((as.integer(substr(names(rr), start = 1, stop = 4))))]] # Re-ordering by year
+    if(v == "rain"){
+      rr <- terra::tapp(rr, index = rep(1:length(1983:2016), each = length(f.month)), fun = sum)
+    } else {
+      rr <- terra::tapp(rr, index = rep(1:length(1983:2016), each = length(f.month)), fun = mean)
+    }
+    qr <- terra::quantile(rr, seq(0,1,0.2), na.rm = T)
+    q <- terra::extract(qr, data[,c(2,3)])[,c("ID","q0.2","q0.4","q0.6","q0.8")]
+    out <- merge(out, q, by = "ID")
+    f <- out[,c(paste0("forecast", "_", v, "_", f.month), "q0.2", "q0.4", "q0.6", "q0.8")]
+    if(v == "rain" & length(paste0("forecast", "_", v, "_", f.month)) > 1){
+      ft <- ifelse(rowSums(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) <= f$q0.2, "Very Low",
+                   ifelse(rowSums(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.4, "Low",
+                          ifelse(rowSums(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.6, "Average",
+                                 ifelse(rowSums(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.8, "High",
+                                        ifelse(rowSums(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) >= f$q0.8, "Very High", NA)))))
+    }
+    else if(v == "tmax" & length(paste0("forecast", "_", v, "_", f.month)) > 1){
+      ft <- ifelse(rowMeans(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) <= f$q0.2, "Very Low",
+                   ifelse(rowMeans(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.4, "Low",
+                          ifelse(rowMeans(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.6, "Average",
+                                 ifelse(rowMeans(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) < f$q0.8, "High",
+                                        ifelse(rowMeans(f[,paste0("forecast", "_", v, "_", f.month)], na.rm = F) >= f$q0.8, "Very High", NA)))))
+    } else {
+      ft <- ifelse(f[,paste0("forecast", "_", v, "_", f.month)] <= f$q0.2, "Very Low",
+                   ifelse(f[,paste0("forecast", "_", v, "_", f.month)] < f$q0.4, "Low",
+                          ifelse(f[,paste0("forecast", "_", v, "_", f.month)] < f$q0.6, "Average",
+                                 ifelse(f[,paste0("forecast", "_", v, "_", f.month)] < f$q0.8, "High",
+                                        ifelse(f[,paste0("forecast", "_", v, "_", f.month)] >= f$q0.8, "Very High", NA)))))
+    }
+    out <- cbind(out,ft)
+    colnames(out)[length(colnames(out))] <- paste0("text", "_", v, "_", paste0(f.month[1]))
+    out <- out[, colnames(out)[!grepl("q", colnames(out))]]
+  }
+}
+oout <- out[complete.cases(out),c(1,2,3,grep(paste0("text", "_"), colnames(out)))]
+write.table(oout, paste0("./data/output/sprout_forecast_s5_", month <- format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")
