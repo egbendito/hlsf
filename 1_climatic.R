@@ -44,6 +44,7 @@ for (month in sprintf("%02d", 1:12)) {
   terra::add(tst) <- mt
 }
 # Write intermediate monthly aggregates
+dir.create(path = paste0("./data/intermediate/climatic/"), recursive = TRUE, showWarnings = FALSE)
 terra::writeCDF(omp, "./data/intermediate/climatic/climatic_monthly_prec.nc", overwrite=TRUE, unit="mm", compression = 5)
 terra::writeCDF(omt, "./data/intermediate/climatic/climatic_monthly_tmax.nc", overwrite=TRUE, unit="C", compression = 5)
 terra::writeCDF(tsp, "./data/intermediate/climatic/climatic_monthly_ts_prec.nc", overwrite=TRUE, unit="mm", compression = 5)

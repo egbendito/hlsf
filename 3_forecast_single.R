@@ -109,4 +109,5 @@ for (v in c("rain", "tmax")) {
   }
 }
 oout <- out[complete.cases(out),c(1,2,3,grep(paste0("text", "_"), colnames(out)))]
+dir.create(path = paste0("./data/output/"), recursive = TRUE, showWarnings = FALSE)
 write.table(oout, paste0("./data/output/sprout_forecast_s5_", month <- format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")

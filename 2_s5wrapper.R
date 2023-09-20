@@ -3,6 +3,9 @@ pol <- terra::vect('./data/input/gadm/roi.gpkg', layer = 'roi')
 bb <- terra::ext(pol)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
+dir.create(path = paste0("./data/input/s5/"), recursive = TRUE, showWarnings = FALSE)
+dir.create(path = paste0("./data/intermediate/forecast/"), recursive = TRUE, showWarnings = FALSE)
+
 # Download ECMWF-S5 for specific year and transform
 for(year in c(format(Sys.Date(), "%Y"))){
   month <- format(Sys.Date(), "%m")
