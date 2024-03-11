@@ -1,5 +1,5 @@
 # ROI
-iso <- c("BWA")
+iso <- c("NGA")
 
 origin<- getwd()
 
@@ -15,14 +15,26 @@ if(!file.exists("./data/input/gadm/roi.gpkg")){
 
   # Merge files
   # Check validity of geometries
-  A <- sf::st_read(paste0("./data/input/gadm/gadm41_", iso[1], ".gpkg"), layer = "ADM_ADM_2", quiet = T)
-  for (f in list.files("./data/input/gadm/",
-                       pattern = ".gpkg")[2:length(list.files("./data/input/gadm/",
-                                                              pattern = ".gpkg"))]) {
-    iso <- substr(gsub(".gpkg","",f), 8,10)
-    fname <- paste0("./data/input/gadm/", f)
-    for (l in sf::st_layers(fname)[1]) {
+  if (length(list.files("./data/input/gadm/", pattern = ".gpkg")) > 1) {
+    fname <- paste0("./data/input/gadm/gadm41_", iso[1], ".gpkg")
+    A <- sf::st_read(paste0("./data/input/gadm/gadm41_", iso[1], ".gpkg"), layer = sf::st_layers(fname)[[1]][1], quiet = T)
+    for (l in sf::st_layers(fname)[2]) {
       pol <- sf::st_read(fname, layer = l[length(l)], quiet = T)
+      A <- sf::st_union(dplyr::bind_rows(list(A,pol)), by_feature = T)
+    }
+    for (f in list.files("./data/input/gadm/", pattern = ".gpkg")[2:length(list.files("./data/input/gadm/",pattern = ".gpkg"))]) {
+      iso <- substr(gsub(".gpkg","",f), 8,10)
+      fname <- paste0("./data/input/gadm/", f)
+      for (l in sf::st_layers(fname)[[1]][2:length(sf::st_layers(fname)[[1]])]) {
+        pol <- sf::st_read(fname, layer = l, quiet = T)
+        A <- sf::st_union(dplyr::bind_rows(list(A,pol)), by_feature = T)
+      }
+    }
+  } else {
+    fname <- paste0("./data/input/gadm/gadm41_", iso[1], ".gpkg")
+    A <- sf::st_read(paste0("./data/input/gadm/gadm41_", iso[1], ".gpkg"), layer = sf::st_layers(fname)[[1]][1], quiet = T)
+    for (l in sf::st_layers(fname)[[1]][2:length(sf::st_layers(fname)[[1]])]) {
+      pol <- sf::st_read(fname, layer = l, quiet = T)
       A <- sf::st_union(dplyr::bind_rows(list(A,pol)), by_feature = T)
     }
   }
