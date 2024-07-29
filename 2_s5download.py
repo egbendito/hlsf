@@ -19,37 +19,69 @@ c = cdsapi.Client()
 variables = ['total_precipitation', 'maximum_2m_temperature_in_the_last_24_hours']
 
 for var in variables:
+    dataset = 'seasonal-original-single-levels'
+    times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
     if var == 'total_precipitation':
-      times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
-      out = './data/input/s5/ecmwf_s5_rain_' + str(year) + '.nc'
+      out = './data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
     else:
-      times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
-      out = './data/input/s5/ecmwf_s5_tmax_' + str(year) + '.nc'
-    c.retrieve(
-        'seasonal-original-single-levels',
-        {
-            'format': 'netcdf',
-            'variable': var,
-            'originating_centre': 'ecmwf',
-            'system': '51',
-            'year': year,
-            'month': month,
-            'day': '01',
-            'leadtime_hour': times,
-            'area': area,
-        },
-        out
-    )
+      out = './data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
+    request = {
+        'originating_centre': 'ecmwf',
+        'system': '51',
+        'variable': var,
+        'year': year,
+        'month': month,
+        'day': '01',
+        'leadtime_hour': times,
+        'area': area,
+        'data_format': 'netcdf'
+    }
+    # client.retrieve(dataset, request).download()
+    c.retrieve(dataset, request, out)
     time.sleep(1)
     if var == 'total_precipitation':
-      rain = xr.open_dataset('./data/input/s5/ecmwf_s5_rain_' + str(year) + '.nc')
+      rain = xr.open_dataset('./data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
       rain = rain * 1000
       rain = rain.mean(dim = 'number')
-      rain.to_netcdf('./data/intermediate/forecast/ecmwf_s5_rain_' + str(year) + '.nc')
+      rain.to_netcdf('./data/intermediate/forecast/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
     else:
-      tmax = xr.open_dataset('./data/input/s5/ecmwf_s5_tmax_' + str(year) + '.nc')
+      tmax = xr.open_dataset('./data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
       tmax = tmax-273.15
       tmax = tmax.mean(dim = 'number')
-      tmax.to_netcdf('./data/intermediate/forecast/ecmwf_s5_tmax_' + str(year) + '.nc')
+      tmax.to_netcdf('./data/intermediate/forecast/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
+
+# for var in variables:
+#     if var == 'total_precipitation':
+#       times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
+#       out = './data/input/s5/ecmwf_s5_rain_' + str(year) + '.nc'
+#     else:
+#       times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
+#       out = './data/input/s5/ecmwf_s5_tmax_' + str(year) + '.nc'
+#     c.retrieve(
+#         'seasonal-original-single-levels',
+#         {
+#             'format': 'netcdf',
+#             'variable': var,
+#             'originating_centre': 'ecmwf',
+#             'system': '51',
+#             'year': year,
+#             'month': month,
+#             'day': '01',
+#             'leadtime_hour': times,
+#             'area': area,
+#         },
+#         out
+#     )
+#     time.sleep(1)
+#     if var == 'total_precipitation':
+#       rain = xr.open_dataset('./data/input/s5/ecmwf_s5_rain_' + str(year) + '.nc')
+#       rain = rain * 1000
+#       rain = rain.mean(dim = 'number')
+#       rain.to_netcdf('./data/intermediate/forecast/ecmwf_s5_rain_' + str(year) + '.nc')
+#     else:
+#       tmax = xr.open_dataset('./data/input/s5/ecmwf_s5_tmax_' + str(year) + '.nc')
+#       tmax = tmax-273.15
+#       tmax = tmax.mean(dim = 'number')
+#       tmax.to_netcdf('./data/intermediate/forecast/ecmwf_s5_tmax_' + str(year) + '.nc')
   
         
