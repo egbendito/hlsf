@@ -9,9 +9,10 @@ omt <- terra::rast("./data/intermediate/climatic/climatic_monthly_tmax.nc")
 
 # Load forecast
 year <- format(Sys.Date(), "%Y")
+c.month <- format(Sys.Date(), "%m")
 months <- sprintf("%02d", 1:12)
-t.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_tmax_", year, ".nc")) # Load seasonal forecast tmax
-p.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_rain_", year, ".nc")) # Load seasonal forecast prec
+t.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_tmax_", year, "_", c.month, ".nc")) # Load seasonal forecast tmax
+p.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_rain_", year, "_", c.month, ".nc")) # Load seasonal forecast prec
 f.months <- unique(format(as.Date(terra::time(p.f)), "%m"))
 
 # monthly stack (sum of daily values)
@@ -110,4 +111,4 @@ for (v in c("rain", "tmax")) {
 }
 oout <- out[complete.cases(out),c(1,2,3,grep(paste0("text", "_"), colnames(out)))]
 dir.create(path = paste0("./data/output/"), recursive = TRUE, showWarnings = FALSE)
-write.table(oout, paste0("./data/output/sprout_forecast_s5_", month <- format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")
+write.table(oout, paste0("./data/output/sprout_forecast_s5_", format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")
