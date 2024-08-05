@@ -2,8 +2,8 @@ import numpy as np
 import time
 import os
 import sys
-import xarray as xr # Need to install
-import cdsapi # Need to install
+import xarray as xr
+import cdsapi
 
 
 year = int(sys.argv[1])

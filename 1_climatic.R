@@ -14,7 +14,7 @@ file.checks <- c("./data/intermediate/climatic/climatic_monthly_prec.nc",
                  "./data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
 
 # Check if climate data file exists before processing everything
-if(!all(file.exists(check))){
+if(!all(file.exists(file.checks))){
   cat("\nProcessing climatic baseline (1983 - 2016)...\n")
   # Process climatic means
   years <- 1983:2016
