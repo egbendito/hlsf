@@ -47,7 +47,8 @@ cat('\n Succesfully completed GADM download')
 ## CHIRPS
 vars <- c("prec", "tmax")
 names(vars) <- c("chirps", "chirts")
-years <- seq(1983, 2016, 1)
+# years <- seq(1983, 2016, 1)
+years <- seq(1983, 1984, 1)
 pol <- terra::vect("./data/input/gadm/roi.gpkg", layer = "roi")
 bb <- terra::ext(pol)
 origin<- getwd()
@@ -60,16 +61,18 @@ for (i in seq_along(vars)) {
   dir.create(path = paste0("./data/input/", vname), recursive = TRUE, showWarnings = FALSE)
   for (year in years){
     if(!file.exists(paste0("./data/input/", vname, "/", year, ".nc"))){
+      cat(paste0("\n Processing ", toupper(vname), " for year ", year))
       if(vname == "chirps"){
-        file <- list.files("/home/jovyan/common_data/chirps_af/netcdf", full.names = TRUE, pattern = paste0(year, collapse = '|'))
+        url <- paste0("https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/chirps-v2.0.", year, ".days_p05.nc")
+        p <- "integer"
       }
       else {
-        file <- list.files("/home/jovyan/common_data/chirts/netcdf/tmax/africa", full.names = TRUE, pattern = paste0(year, collapse = '|'))
+        url <- paste0("https://data.chc.ucsb.edu/products/CHIRTSdaily/v1.0/africa_netcdf_p05/Tmax.", year, ".nc")
+        p <- "float"
       }
-      R <- terra::rast(file)
-      R <- terra::crop(R, bb)
-      terra::writeCDF(R, filename = paste0("./data/input/", vname, "/", year, ".nc"), prec = "float", compression = 5, overwrite = TRUE)
-      cat(paste0("\n Processing ", toupper(vname), " for year ", year))
+      system(paste0("curl ", url, " -o ./data/input/", vname, "/", year, ".nc"))
+      ori <- terra::crop(terra::rast(paste0("./data/input/", vname, "/", year, ".nc")), bb)
+      terra::writeCDF(ori, filename = paste0("./data/input/", vname, "/", year, ".nc"), prec = p, compression = 5, overwrite = TRUE)
     }
   }
 }
