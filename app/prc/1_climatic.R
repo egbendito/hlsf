@@ -4,8 +4,8 @@ bb <- terra::ext(pol)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
 # Load reference functions
-source("0_chirts.R")
-source("0_chirps.R")
+source("chirts.R")
+source("chirps.R")
 
 # List of climatic files
 file.checks <- c("./data/intermediate/climatic/climatic_monthly_prec.nc",
