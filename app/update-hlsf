@@ -1,0 +1,9 @@
+#!/bin/bash
+# ^^ Name the interpreter that will run this script.
+# This must be the absolute very first line of the file.
+# Use /bin/sh in most cases; many images do not have GNU bash.
+# (And make sure to avoid bash-specific syntax, like "function"
+# or "source").
+
+Rscript ./app/prc/2_s5wrapper.R
+Rscript ./app/prc/3b_forecast_single.R

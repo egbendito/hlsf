@@ -4,8 +4,8 @@ bb <- terra::ext(pol)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
 # Load reference functions
-source("chirts.R")
-source("chirps.R")
+source("./app/prc/chirps.R")
+source("./app/prc/chirts.R")
 
 # List of climatic files
 file.checks <- c("./data/intermediate/climatic/climatic_monthly_prec.nc",
@@ -17,7 +17,8 @@ file.checks <- c("./data/intermediate/climatic/climatic_monthly_prec.nc",
 if(!all(file.exists(file.checks))){
   cat("\nProcessing climatic baseline (1983 - 2016)...\n")
   # Process climatic means
-  years <- 1983:2016
+  # years <- 1983:2016
+  years <- 1983
   weights <- exp(-0.1*(years[length(years)]-years))
   tsp <- terra::rast()
   tst <- terra::rast()

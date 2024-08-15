@@ -1,18 +1,17 @@
-# ROI
-# iso <- c("RWA")
 args <- commandArgs()
-iso <- args[6]
+iso <- args[8]
 
 origin<- getwd()
 
 dir.create(path = paste0("./data/input/gadm/"), recursive = TRUE, showWarnings = FALSE)
 
 if(!file.exists("./data/input/gadm/roi.gpkg")){
+  cat('\n Downloading GADM data \n\n')
   # Download files
   for (i in iso) {
     url <- paste0("https://geodata.ucdavis.edu/gadm/gadm4.1/gpkg/gadm41_", i, ".gpkg")
     dir.create("./data/input/gadm/", showWarnings = FALSE)
-    download.file(url, destfile = paste0("./data/input/gadm/gadm41_", i, ".gpkg"))
+    system(paste0("curl --progress-bar ", url, " -o ./data/input/gadm/gadm41_", i, ".gpkg"))
   }
 
   # Merge files
@@ -44,17 +43,18 @@ if(!file.exists("./data/input/gadm/roi.gpkg")){
 
 setwd(origin)
 
-cat('\n Succesfully completed GADM download')
+cat('\n Succesfully completed GADM download \n')
+
+cat('\n -----------------------------------------------------------------------\n')
 
 ## CHIRPS
 vars <- c("prec", "tmax")
 names(vars) <- c("chirps", "chirts")
-years <- seq(1983, 2016, 1)
+# years <- seq(1983, 2016, 1)
+years <- 1983
 pol <- terra::vect("./data/input/gadm/roi.gpkg", layer = "roi")
 bb <- terra::ext(pol)
 origin<- getwd()
-
-cat('\n #############################################################################\n')
 
 for (i in seq_along(vars)) {
   vname <- names(vars[i])
@@ -62,7 +62,7 @@ for (i in seq_along(vars)) {
   dir.create(path = paste0("./data/input/", vname), recursive = TRUE, showWarnings = FALSE)
   for (year in years){
     if(!file.exists(paste0("./data/input/", vname, "/", year, ".nc"))){
-      cat(paste0("\n Processing ", toupper(vname), " for year ", year, " \n"))
+      cat(paste0("\n Processing ", toupper(vname), " for year ", year, " \n\n"))
       if(vname == "chirps"){
         url <- paste0("https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/chirps-v2.0.", year, ".days_p05.nc")
         p <- "integer"
@@ -71,7 +71,7 @@ for (i in seq_along(vars)) {
         url <- paste0("https://data.chc.ucsb.edu/products/CHIRTSdaily/v1.0/africa_netcdf_p05/Tmax.", year, ".nc")
         p <- "float"
       }
-      system(paste0("curl ", url, " -o ./data/input/", vname, "/", year, ".nc"))
+      system(paste0("curl --progress-bar ", url, " -o ./data/input/", vname, "/", year, ".nc"))
       ori <- terra::crop(terra::rast(paste0("./data/input/", vname, "/", year, ".nc")), bb)
       terra::writeCDF(ori, filename = paste0("./data/input/", vname, "/", year, ".nc"), prec = p, compression = 5, overwrite = TRUE)
     }
@@ -80,4 +80,4 @@ for (i in seq_along(vars)) {
 
 setwd(origin)
 
-cat('\n #############################################################################\n')
+cat('\n -----------------------------------------------------------------------\n')
