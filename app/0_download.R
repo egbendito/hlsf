@@ -1,5 +1,7 @@
 # ROI
-iso <- c("RWA")
+# iso <- c("RWA")
+args <- commandArgs()
+iso <- args[6]
 
 origin<- getwd()
 
@@ -60,7 +62,7 @@ for (i in seq_along(vars)) {
   dir.create(path = paste0("./data/input/", vname), recursive = TRUE, showWarnings = FALSE)
   for (year in years){
     if(!file.exists(paste0("./data/input/", vname, "/", year, ".nc"))){
-      cat(paste0("\n Processing ", toupper(vname), " for year ", year))
+      cat(paste0("\n Processing ", toupper(vname), " for year ", year, " \n"))
       if(vname == "chirps"){
         url <- paste0("https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/chirps-v2.0.", year, ".days_p05.nc")
         p <- "integer"
