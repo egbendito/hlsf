@@ -32,8 +32,40 @@ key: your_api_key_here
 ### 4. Results:
 You will be able to retrieve all the data, including the outputs from your `/path/to/your/volume/data/`. There you'll find:
 - inputs:
+```
+├── chirps
+│   ├── 1983.nc
+│   ├── ...
+│   └── 2016.nc
+├── chirts
+│   ├── 1983.nc
+│   ├── ...
+│   └── 1984.nc
+├── gadm
+│   ├── gadm41_$ISO3.gpkg
+│   └── roi.gpkg
+└── s5
+    ├── ecmwf_s5_rain_$YEAR_$MONTH.nc
+    ├── ...
+    └── ecmwf_s5_tmax_$YEAR_$MONTH.nc
+```
 - intermediate:
+```
+├── climatic
+│   ├── climatic_monthly_prec.nc
+│   ├── climatic_monthly_tmax.nc
+│   ├── climatic_monthly_ts_prec.nc
+│   └── climatic_monthly_ts_tmax.nc
+└── forecast
+    ├── ecmwf_s5_rain_$YEAR_$MONTH.nc
+    ├── ...
+    └── ecmwf_s5_tmax_$YEAR_$MONTH.nc
+```
 - outputs:
+```
+├── sprout_forecast_s5_$YEAR_$MONTH-( $MONTH + 9 ).csv
+└── ...
+```
 
 ## Data Sources:
 
