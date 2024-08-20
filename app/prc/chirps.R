@@ -2,7 +2,7 @@ chirps <- function(startDate, endDate, raster = FALSE, coordPoints = NULL){
   dates <- seq.Date(as.Date(startDate, format = "%Y-%m-%d"), as.Date(endDate, format = "%Y-%m-%d"), by = "day")
   year <- unique(format(dates, "%Y"))
   chirps <- terra::rast()
-  for (file in list.files("./data/input/chirps", pattern = paste0(year, collapse = '|'), full.names = TRUE)) {
+  for (file in list.files("/media/data/input/chirps", pattern = paste0(year, collapse = '|'), full.names = TRUE)) {
     terra::add(chirps) <- terra::rast(file)
   }
   names(chirps) <- as.character(format(as.Date(terra::time(chirps)), "%Y%m%d"))

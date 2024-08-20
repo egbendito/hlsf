@@ -1,17 +1,17 @@
 # Nigeria bbox
-NGA <- terra::vect('./data/input/gadm/gadm36_NGA.gpkg', layer = 'gadm36_NGA_1')
+NGA <- terra::vect('/media/data/input/gadm/gadm36_NGA.gpkg', layer = 'gadm36_NGA_1')
 bb <- terra::ext(NGA)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
 # Load climatic
-omp <- terra::rast("./data/intermediate/climatic/climatic_monthly_prec.nc")
-omt <- terra::rast("./data/intermediate/climatic/climatic_monthly_tmax.nc")
+omp <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_prec.nc")
+omt <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_tmax.nc")
 
 # Load forecast
 year <- format(Sys.Date(), "%Y")
 months <- format(seq(Sys.Date(), by = paste (1, "months"), length = 6), "%m")
-t.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_tmax_", year, ".nc")) # Load seasonal forecast tmax
-p.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_rain_", year, ".nc")) # Load seasonal forecast prec
+t.f <- terra::rast(paste0("/media/data/intermediate/forecast/ecmwf_s5_tmax_", year, ".nc")) # Load seasonal forecast tmax
+p.f <- terra::rast(paste0("/media/data/intermediate/forecast/ecmwf_s5_rain_", year, ".nc")) # Load seasonal forecast prec
 
 # monthly stack (sum of daily values)
 # make a monthly index first
@@ -55,8 +55,8 @@ data <- merge(data, c, by = "ID")
 
 # Write outputs
 out <- data
-tsp <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_prec.nc")
-tst <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
+tsp <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_ts_prec.nc")
+tst <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
 np <- c()
 nt <- c()
 # for (month in sprintf("%02d", 4:9)) {
@@ -115,5 +115,5 @@ for (v in c("rain", "tmax")) {
   }
 }
 oout <- out[complete.cases(out),c(1,2,3,grep(paste0("text", "_"), colnames(out)))]
-dir.create(path = paste0("./data/output/"), recursive = TRUE, showWarnings = FALSE)
-write.table(oout, "./data/output/forecast_2023_seas_Sprout.csv", row.names = FALSE, sep = ",")
+dir.create(path = paste0("/media/data/output/"), recursive = TRUE, showWarnings = FALSE)
+write.table(oout, "/media/data/output/forecast_2023_seas_Sprout.csv", row.names = FALSE, sep = ",")

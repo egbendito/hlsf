@@ -1,5 +1,5 @@
 # bbox
-pol <- terra::vect('./data/input/gadm/roi.gpkg', layer = 'roi')
+pol <- terra::vect('/media/data/input/gadm/roi.gpkg', layer = 'roi')
 bb <- terra::ext(pol)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
@@ -8,17 +8,16 @@ source("./app/prc/chirps.R")
 source("./app/prc/chirts.R")
 
 # List of climatic files
-file.checks <- c("./data/intermediate/climatic/climatic_monthly_prec.nc",
-                 "./data/intermediate/climatic/climatic_monthly_tmax.nc",
-                 "./data/intermediate/climatic/climatic_monthly_ts_prec.nc",
-                 "./data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
+file.checks <- c("/media/data/intermediate/climatic/climatic_monthly_prec.nc",
+                 "/media/data/intermediate/climatic/climatic_monthly_tmax.nc",
+                 "/media/data/intermediate/climatic/climatic_monthly_ts_prec.nc",
+                 "/media/data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
 
 # Check if climate data file exists before processing everything
 if(!all(file.exists(file.checks))){
   cat("\nProcessing climatic baseline (1983 - 2016)...\n")
   # Process climatic means
-  # years <- 1983:2016
-  years <- 1983
+  years <- 1983:2016
   weights <- exp(-0.1*(years[length(years)]-years))
   tsp <- terra::rast()
   tst <- terra::rast()
@@ -54,11 +53,11 @@ if(!all(file.exists(file.checks))){
     terra::add(tst) <- mt
   }
   # Write intermediate monthly aggregates
-  dir.create(path = paste0("./data/intermediate/climatic/"), recursive = TRUE, showWarnings = FALSE)
-  terra::writeCDF(omp, "./data/intermediate/climatic/climatic_monthly_prec.nc", overwrite=TRUE, unit="mm", compression = 5)
-  terra::writeCDF(omt, "./data/intermediate/climatic/climatic_monthly_tmax.nc", overwrite=TRUE, unit="C", compression = 5)
-  terra::writeCDF(tsp, "./data/intermediate/climatic/climatic_monthly_ts_prec.nc", overwrite=TRUE, unit="mm", compression = 5)
-  terra::writeCDF(tst, "./data/intermediate/climatic/climatic_monthly_ts_tmax.nc", overwrite=TRUE, unit="C", compression = 5)
+  dir.create(path = paste0("/media/data/intermediate/climatic/"), recursive = TRUE, showWarnings = FALSE)
+  terra::writeCDF(omp, "/media/data/intermediate/climatic/climatic_monthly_prec.nc", overwrite=TRUE, unit="mm", compression = 5)
+  terra::writeCDF(omt, "/media/data/intermediate/climatic/climatic_monthly_tmax.nc", overwrite=TRUE, unit="C", compression = 5)
+  terra::writeCDF(tsp, "/media/data/intermediate/climatic/climatic_monthly_ts_prec.nc", overwrite=TRUE, unit="mm", compression = 5)
+  terra::writeCDF(tst, "/media/data/intermediate/climatic/climatic_monthly_ts_tmax.nc", overwrite=TRUE, unit="C", compression = 5)
 } else {
   cat("\nClimatic baseline (1983 - 2016) already processed.\n")
 }

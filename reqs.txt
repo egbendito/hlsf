@@ -1,0 +1,4 @@
+numpy
+xarray
+netcdf4
+cdsapi>=0.7.0

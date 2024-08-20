@@ -14,7 +14,12 @@ ymin = float(sys.argv[5])
 ymax = float(sys.argv[6])
 area = [ymax, xmin, ymin, xmax,]
 
-c = cdsapi.Client()
+# CDS API credentials
+
+url = open('/media/.cdsapirc').readlines()[0].strip('\n').strip().split(": ", 1)[1]
+key = open('/media/.cdsapirc').readlines()[1].strip('\n').strip().split(": ", 1)[1]
+
+c = cdsapi.Client(url = url, key = key)
 
 variables = ['total_precipitation', 'maximum_2m_temperature_in_the_last_24_hours']
 
@@ -22,9 +27,9 @@ for var in variables:
     dataset = 'seasonal-original-single-levels'
     times = ["{:01d}".format(n) for n in range(24, 5166, 24)]
     if var == 'total_precipitation':
-      out = './data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
+      out = '/media/data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
     else:
-      out = './data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
+      out = '/media/data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc'
     request = {
         'originating_centre': 'ecmwf',
         'system': '51',
@@ -39,12 +44,12 @@ for var in variables:
     c.retrieve(dataset, request, out)
     time.sleep(1)
     if var == 'total_precipitation':
-      rain = xr.open_dataset('./data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
+      rain = xr.open_dataset('/media/data/input/s5/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
       rain = rain * 1000
       rain = rain.mean(dim = 'number')
-      rain.to_netcdf('./data/intermediate/forecast/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
+      rain.to_netcdf('/media/data/intermediate/forecast/ecmwf_s5_rain_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
     else:
-      tmax = xr.open_dataset('./data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
+      tmax = xr.open_dataset('/media/data/input/s5/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
       tmax = tmax-273.15
       tmax = tmax.mean(dim = 'number')
-      tmax.to_netcdf('./data/intermediate/forecast/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')
+      tmax.to_netcdf('/media/data/intermediate/forecast/ecmwf_s5_tmax_' + str(year) + '_' + str("{:02d}".format(month)) + '.nc')

@@ -1,18 +1,18 @@
 # bbox
-pol <- terra::vect('./data/input/gadm/roi.gpkg', layer = 'roi')
+pol <- terra::vect('/media/data/input/gadm/roi.gpkg', layer = 'roi')
 bb <- terra::ext(pol)
 bb <- data.frame("x" = c(bb[1][[1]],bb[2][[1]]), "y" = c(bb[3][[1]], bb[4][[1]]))
 
 # Load climatic
-omp <- terra::rast("./data/intermediate/climatic/climatic_monthly_prec.nc")
-omt <- terra::rast("./data/intermediate/climatic/climatic_monthly_tmax.nc")
+omp <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_prec.nc")
+omt <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_tmax.nc")
 
 # Load forecast
 year <- format(Sys.Date(), "%Y")
 c.month <- format(Sys.Date(), "%m")
 months <- sprintf("%02d", 1:12)
-t.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_tmax_", year, "_", c.month, ".nc")) # Load seasonal forecast tmax
-p.f <- terra::rast(paste0("./data/intermediate/forecast/ecmwf_s5_rain_", year, "_", c.month, ".nc")) # Load seasonal forecast prec
+t.f <- terra::rast(paste0("/media/data/intermediate/forecast/ecmwf_s5_tmax_", year, "_", c.month, ".nc")) # Load seasonal forecast tmax
+p.f <- terra::rast(paste0("/media/data/intermediate/forecast/ecmwf_s5_rain_", year, "_", c.month, ".nc")) # Load seasonal forecast prec
 f.months <- unique(format(as.Date(terra::time(p.f)), "%m"))
 
 # monthly stack (sum of daily values)
@@ -57,8 +57,8 @@ data <- merge(data, c, by = "ID")
 
 # Write outputs
 out <- data
-tsp <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_prec.nc")
-tst <- terra::rast("./data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
+tsp <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_ts_prec.nc")
+tst <- terra::rast("/media/data/intermediate/climatic/climatic_monthly_ts_tmax.nc")
 np <- c()
 nt <- c()
 for (month in months) {
@@ -110,5 +110,5 @@ for (v in c("rain", "tmax")) {
   }
 }
 oout <- out[complete.cases(out),c(1,2,3,grep(paste0("text", "_"), colnames(out)))]
-dir.create(path = paste0("./data/output/"), recursive = TRUE, showWarnings = FALSE)
-write.table(oout, paste0("./data/output/sprout_forecast_s5_", format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")
+dir.create(path = paste0("/media/data/output/"), recursive = TRUE, showWarnings = FALSE)
+write.table(oout, paste0("/media/data/output/sprout_forecast_s5_", format(Sys.Date(), "%Y"), "_",  paste0(f.months[1],"-", f.months[length(f.months)]), ".csv"), row.names = FALSE, sep = ",")
